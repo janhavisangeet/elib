@@ -1,12 +1,10 @@
 import { User } from "../user/userTypes";
 
-export interface Book {
+export interface Pdf {
   _id: string;
-  title: string;
-  description: string;
+  year: Number;
+  month: string;
   author: User;
-  genre: string;
-  coverImage: string;
   file: string;
   createdAt: Date;
   updatedAt: Date;

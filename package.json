@@ -1,7 +1,7 @@
 {
   "name": "elib",
   "version": "1.0.0",
-  "description": "This is a ebook api project",
+  "description": "This is a ePdf api project",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon server.ts",

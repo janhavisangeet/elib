@@ -1,16 +1,16 @@
 import path from "node:path";
 import express from "express";
 import {
-  createBook,
-  deleteBook,
-  getSingleBook,
-  listBooks,
-  updateBook,
-} from "./bookController";
+  createPdf,
+  deletePdf,
+  getSinglePdf,
+  listPdfs,
+  updatePdf,
+} from "./pdfController";
 import multer from "multer";
 import authenticate from "../middlewares/authenticate";
 
-const bookRouter = express.Router();
+const pdfRouter = express.Router();
 
 // file store local ->
 const upload = multer({
@@ -19,30 +19,30 @@ const upload = multer({
   limits: { fileSize: 3e7 }, // 30mb 30 * 1024 * 1024
 });
 // routes
-// /api/books
-bookRouter.post(
+// /api/pdfs
+pdfRouter.post(
   "/",
   authenticate,
   upload.fields([
-    { name: "coverImage", maxCount: 1 },
+    // { name: "coverImage", maxCount: 1 },
     { name: "file", maxCount: 1 },
   ]),
-  createBook
+  createPdf
 );
 
-bookRouter.patch(
-  "/:bookId",
+pdfRouter.patch(
+  "/:pdfId",
   authenticate,
   upload.fields([
-    { name: "coverImage", maxCount: 1 },
+    // { name: "coverImage", maxCount: 1 },
     { name: "file", maxCount: 1 },
   ]),
-  updateBook
+  updatePdf
 );
 
-bookRouter.get("/", listBooks);
-bookRouter.get("/:bookId", getSingleBook);
+pdfRouter.get("/", listPdfs);
+pdfRouter.get("/:pdfId", getSinglePdf);
 
-bookRouter.delete("/:bookId", authenticate, deleteBook);
+pdfRouter.delete("/:pdfId", authenticate, deletePdf);
 
-export default bookRouter;
+export default pdfRouter;

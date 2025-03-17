@@ -2,7 +2,7 @@ import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import globalErrorHandler from "./middlewares/globalErrorHandler";
 import userRouter from "./user/userRouter";
-import bookRouter from "./book/bookRouter";
+import pdfRouter from "./pdf/pdfRouter";
 import { config } from "./config/config";
 
 const app = express();
@@ -13,7 +13,7 @@ app.use(
     })
 );
 
-app.use(express.json());
+app.use(express.json()); 
 
 // Routes
 // Http methods: GET, POST, PUT, PATCH, DELETE
@@ -22,7 +22,7 @@ app.get("/", (req, res, next) => {
 });
 
 app.use("/api/users", userRouter);
-app.use("/api/books", bookRouter);
+app.use("/api/pdfs", pdfRouter);
 
 // Global error handler
 app.use(globalErrorHandler);
