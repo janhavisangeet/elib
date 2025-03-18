@@ -148,16 +148,48 @@ const updatePdf = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const listPdfs = async (req: Request, res: Response, next: NextFunction) => {
-    // const sleep = await new Promise((resolve) => setTimeout(resolve, 5000));
-
     try {
-        // todo: add pagination.
-        const pdf = await pdfModel.find().populate("author", "name");
-        res.json(pdf);
+        // Extract query parameters
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const month = req.query.month as string | undefined;
+        const year = req.query.year ? parseInt(req.query.year as string) : undefined;
+
+        const filters: Record<string, any> = {};
+
+        // Optional filters
+        if (month) {
+            filters.month = month;
+        }
+
+        if (year) {
+            filters.year = year;
+        }
+
+        const totalPdfs = await pdfModel.countDocuments(filters);
+
+        const pdfs = await pdfModel
+            .find(filters)
+            .populate('author', 'name')
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        res.json({
+            data: pdfs,
+            pagination: {
+                total: totalPdfs,
+                page,
+                limit,
+                totalPages: Math.ceil(totalPdfs / limit),
+            },
+        });
     } catch (err) {
-        return next(createHttpError(500, "Error while getting a pdf"));
+        console.error(err);
+        return next(createHttpError(500, 'Error while getting PDFs'));
     }
 };
+
 
 const getSinglePdf = async (
     req: Request,
