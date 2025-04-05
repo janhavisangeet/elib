@@ -4,6 +4,7 @@ import {
   createPdf,
   deletePdf,
   getSinglePdf,
+  listAllPdfs,
   listPdfs,
   updatePdf,
 } from "./pdfController";
@@ -40,7 +41,10 @@ pdfRouter.patch(
   updatePdf
 );
 
-pdfRouter.get("/", listPdfs);
+pdfRouter.get("/", authenticate,listPdfs);
+
+pdfRouter.get("/allPdf",  listAllPdfs);
+
 pdfRouter.get("/:pdfId", getSinglePdf);
 
 pdfRouter.delete("/:pdfId", authenticate, deletePdf);

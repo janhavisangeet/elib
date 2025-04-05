@@ -147,7 +147,58 @@ const updatePdf = async (req: Request, res: Response, next: NextFunction) => {
     res.json(updatedPdf);
 };
 
+// Provides pdfs for particular user
 const listPdfs = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // Extract query parameters
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const month = req.query.month as string | undefined;
+        const year = req.query.year ? parseInt(req.query.year as string) : undefined;
+
+        const filters: Record<string, any> = {};
+
+        // Optional filters
+        if (month) {
+            filters.month = month;
+        }
+
+        if (year) {
+            filters.year = year;
+        }
+
+        const _req = req as AuthRequest;
+        if(_req.userId){
+            console.log(_req.userId)
+            filters.user = _req.userId;
+        }
+
+        const totalPdfs = await pdfModel.countDocuments(filters);
+
+        const pdfs = await pdfModel
+            .find(filters)
+            .populate('user', 'name')
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        res.json({
+            data: pdfs,
+            pagination: {
+                total: totalPdfs,
+                page,
+                limit,
+                totalPages: Math.ceil(totalPdfs / limit),
+            },
+        });
+    } catch (err) {
+        console.error(err);
+        return next(createHttpError(500, 'Error while getting PDFs'));
+    }
+};
+
+// Provides pdfs of all users 
+const listAllPdfs = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // Extract query parameters
         const page = parseInt(req.query.page as string) || 1;
@@ -250,4 +301,4 @@ const deletePdf = async (req: Request, res: Response, next: NextFunction) => {
     return res.sendStatus(204);
 };
 
-export { createPdf, updatePdf, listPdfs, getSinglePdf, deletePdf };
+export { createPdf, updatePdf, listPdfs, listAllPdfs,getSinglePdf, deletePdf };
