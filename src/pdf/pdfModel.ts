@@ -3,7 +3,7 @@ import { Pdf } from "./pdfTypes";
 
 const pdfSchema = new mongoose.Schema<Pdf>(
     {
-        author: {
+        user: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true,

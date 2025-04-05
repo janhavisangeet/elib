@@ -4,7 +4,7 @@ export interface Pdf {
   _id: string;
   year: Number;
   month: string;
-  author: User;
+  user: User;
   file: string;
   createdAt: Date;
   updatedAt: Date;

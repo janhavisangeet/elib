@@ -52,7 +52,7 @@ const createPdf = async (req: Request, res: Response, next: NextFunction) => {
             // coverImage: uploadResult.secure_url,
             month,
             year,
-            author: _req.userId,
+            user: _req.userId,
             file: pdfFileUploadResult.secure_url,
         });
 
@@ -79,7 +79,7 @@ const updatePdf = async (req: Request, res: Response, next: NextFunction) => {
     }
     // Check access
     const _req = req as AuthRequest;
-    if (pdf.author.toString() !== _req.userId) {
+    if (pdf.user.toString() !== _req.userId) {
         return next(createHttpError(403, "You can not update others pdf."));
     }
 
@@ -170,7 +170,7 @@ const listPdfs = async (req: Request, res: Response, next: NextFunction) => {
 
         const pdfs = await pdfModel
             .find(filters)
-            .populate('author', 'name')
+            .populate('user', 'name')
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
@@ -201,8 +201,8 @@ const getSinglePdf = async (
     try {
         const pdf = await pdfModel
             .findOne({ _id: pdfId })
-            // populate author field
-            .populate("author", "name");
+            // populate user field
+            .populate("user", "name");
         if (!pdf) {
             return next(createHttpError(404, "Pdf not found."));
         }
@@ -223,7 +223,7 @@ const deletePdf = async (req: Request, res: Response, next: NextFunction) => {
 
     // Check Access
     const _req = req as AuthRequest;
-    if (pdf.author.toString() !== _req.userId) {
+    if (pdf.user.toString() !== _req.userId) {
         return next(createHttpError(403, "You can not update others pdf."));
     }
     // pdf-covers/dkzujeho0txi0yrfqjsm
