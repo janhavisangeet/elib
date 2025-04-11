@@ -87,7 +87,7 @@ const updatePdf = async (req: Request, res: Response, next: NextFunction) => {
 
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
-    
+
     // let completeCoverImage = "";
     // if (files.coverImage) {
     //     const filename = files.coverImage[0].filename;
@@ -267,40 +267,47 @@ const getSinglePdf = async (
 };
 
 const deletePdf = async (req: Request, res: Response, next: NextFunction) => {
-    const pdfId = req.params.pdfId;
+    try{
+        const pdfId = req.params.pdfId;
 
-    const pdf = await pdfModel.findOne({ _id: pdfId });
-    if (!pdf) {
-        return next(createHttpError(404, "Pdf not found"));
+        const pdf = await pdfModel.findOne({ _id: pdfId });
+        if (!pdf) {
+            return next(createHttpError(404, "Pdf not found"));
+        }
+    
+        // Check Access
+        const _req = req as AuthRequest;
+        if (pdf.user.toString() !== _req.userId) {
+            return next(createHttpError(403, "You can not update others pdf."));
+        }
+        // pdf-covers/dkzujeho0txi0yrfqjsm
+        // https://res.cloudinary.com/degzfrkse/image/upload/v1712590372/pdf-covers/u4bt9x7sv0r0cg5cuynm.png
+    
+        // const coverFileSplits = pdf.coverImage.split("/");
+        // const coverImagePublicId =
+        //     coverFileSplits.at(-2) +
+        //     "/" +
+        //     coverFileSplits.at(-1)?.split(".").at(-2);
+    
+        const pdfFileSplits = pdf.file.split("/");
+        const pdfFilePublicId =
+            pdfFileSplits.at(-2) + "/" + pdfFileSplits.at(-1);
+        console.log("pdfFilePublicId", pdfFilePublicId);
+        // todo: add try error block
+        // await cloudinary.uploader.destroy(coverImagePublicId);
+        await cloudinary.uploader.destroy(pdfFilePublicId, {
+            resource_type: "raw",
+        });
+    
+        await pdfModel.deleteOne({ _id: pdfId });
+    
+        return res.sendStatus(204);
     }
-
-    // Check Access
-    const _req = req as AuthRequest;
-    if (pdf.user.toString() !== _req.userId) {
-        return next(createHttpError(403, "You can not update others pdf."));
+    catch(err){
+        console.error("Error deleting PDF:", err);
+        next(createHttpError(500, "Something went wrong while deleting the PDF."));
     }
-    // pdf-covers/dkzujeho0txi0yrfqjsm
-    // https://res.cloudinary.com/degzfrkse/image/upload/v1712590372/pdf-covers/u4bt9x7sv0r0cg5cuynm.png
-
-    // const coverFileSplits = pdf.coverImage.split("/");
-    // const coverImagePublicId =
-    //     coverFileSplits.at(-2) +
-    //     "/" +
-    //     coverFileSplits.at(-1)?.split(".").at(-2);
-
-    const pdfFileSplits = pdf.file.split("/");
-    const pdfFilePublicId =
-        pdfFileSplits.at(-2) + "/" + pdfFileSplits.at(-1);
-    console.log("pdfFilePublicId", pdfFilePublicId);
-    // todo: add try error block
-    // await cloudinary.uploader.destroy(coverImagePublicId);
-    await cloudinary.uploader.destroy(pdfFilePublicId, {
-        resource_type: "raw",
-    });
-
-    await pdfModel.deleteOne({ _id: pdfId });
-
-    return res.sendStatus(204);
+    
 };
 
 export { createPdf, updatePdf, listPdfs, listAllPdfs,getSinglePdf, deletePdf };
