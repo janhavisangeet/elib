@@ -17,7 +17,7 @@ const pdfRouter = express.Router();
 const upload = multer({
   dest: path.resolve(__dirname, "../../public/data/uploads"),
   // todo: put limit 10mb max.
-  limits: { fileSize: 3e7 }, // 30mb 30 * 1024 * 1024
+  limits: { fileSize: 1e7 }, // 10*1024*1024 = 10mb
 });
 // routes
 // /api/pdfs
