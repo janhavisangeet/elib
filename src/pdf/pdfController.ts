@@ -5,6 +5,7 @@ import cloudinary from "../config/cloudinary";
 import createHttpError from "http-errors";
 import pdfModel from "./pdfModel";
 import { AuthRequest } from "../middlewares/authenticate";
+import { startOfDay, endOfDay } from 'date-fns';
 
 const createPdf = async (req: Request, res: Response, next: NextFunction) => {
     // const { title, genre, description } = req.body;
@@ -150,28 +151,121 @@ const updatePdf = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 // Provides pdfs for particular user
+// const listPdfs = async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         // Extract query parameters
+//         const page = parseInt(req.query.page as string) || 1;
+//         const limit = parseInt(req.query.limit as string) || 10;
+//         const month = req.query.month as string | undefined;
+//         const year = req.query.year ? parseInt(req.query.year as string) : undefined;
+
+//         const filters: Record<string, any> = {};
+
+//         // Optional filters
+//         if (month) {
+//             filters.month = month;
+//         }
+
+//         if (year) {
+//             filters.year = year;
+//         }
+
+//         const _req = req as AuthRequest;
+//         if(_req.userId){
+//             console.log(_req.userId)
+//             filters.user = _req.userId;
+//         }
+
+//         const totalPdfs = await pdfModel.countDocuments(filters);
+
+//         const pdfs = await pdfModel
+//             .find(filters)
+//             .populate('user', 'name')
+//             .sort({ createdAt: -1 })
+//             .skip((page - 1) * limit)
+//             .limit(limit);
+
+//         res.json({
+//             data: pdfs,
+//             pagination: {
+//                 total: totalPdfs,
+//                 page,
+//                 limit,
+//                 totalPages: Math.ceil(totalPdfs / limit),
+//             },
+//         });
+//     } catch (err) {
+//         console.error(err);
+//         return next(createHttpError(500, 'Error while getting PDFs'));
+//     }
+// };
+
+// Provides pdfs of all users 
+// const listAllPdfs = async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         // Extract query parameters
+//         const page = parseInt(req.query.page as string) || 1;
+//         const limit = parseInt(req.query.limit as string) || 10;
+//         const month = req.query.month as string | undefined;
+//         const year = req.query.year ? parseInt(req.query.year as string) : undefined;
+
+//         const filters: Record<string, any> = {};
+
+//         // Optional filters
+//         if (month) {
+//             filters.month = month;
+//         }
+
+//         if (year) {
+//             filters.year = year;
+//         }
+
+//         const totalPdfs = await pdfModel.countDocuments(filters);
+
+//         const pdfs = await pdfModel
+//             .find(filters)
+//             .populate('user', 'name')
+//             .sort({ createdAt: -1 })
+//             .skip((page - 1) * limit)
+//             .limit(limit);
+
+//         res.json({
+//             data: pdfs,
+//             pagination: {
+//                 total: totalPdfs,
+//                 page,
+//                 limit,
+//                 totalPages: Math.ceil(totalPdfs / limit),
+//             },
+//         });
+//     } catch (err) {
+//         console.error(err);
+//         return next(createHttpError(500, 'Error while getting PDFs'));
+//     }
+// };
+
+
+
+// Provides PDFs for a particular user
 const listPdfs = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Extract query parameters
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
-        const month = req.query.month as string | undefined;
-        const year = req.query.year ? parseInt(req.query.year as string) : undefined;
+        const dateString = req.query.date as string | undefined;
 
         const filters: Record<string, any> = {};
 
-        // Optional filters
-        if (month) {
-            filters.month = month;
-        }
-
-        if (year) {
-            filters.year = year;
+        // Filter by specific date (full day range)
+        if (dateString) {
+            const date = new Date(dateString);
+            filters.createdAt = {
+                $gte: startOfDay(date),
+                $lte: endOfDay(date),
+            };
         }
 
         const _req = req as AuthRequest;
-        if(_req.userId){
-            console.log(_req.userId)
+        if (_req.userId) {
             filters.user = _req.userId;
         }
 
@@ -199,24 +293,21 @@ const listPdfs = async (req: Request, res: Response, next: NextFunction) => {
     }
 };
 
-// Provides pdfs of all users 
+// Provides PDFs of all users
 const listAllPdfs = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Extract query parameters
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
-        const month = req.query.month as string | undefined;
-        const year = req.query.year ? parseInt(req.query.year as string) : undefined;
+        const dateString = req.query.date as string | undefined;
 
         const filters: Record<string, any> = {};
 
-        // Optional filters
-        if (month) {
-            filters.month = month;
-        }
-
-        if (year) {
-            filters.year = year;
+        if (dateString) {
+            const date = new Date(dateString);
+            filters.createdAt = {
+                $gte: startOfDay(date),
+                $lte: endOfDay(date),
+            };
         }
 
         const totalPdfs = await pdfModel.countDocuments(filters);
@@ -242,7 +333,6 @@ const listAllPdfs = async (req: Request, res: Response, next: NextFunction) => {
         return next(createHttpError(500, 'Error while getting PDFs'));
     }
 };
-
 
 const getSinglePdf = async (
     req: Request,
