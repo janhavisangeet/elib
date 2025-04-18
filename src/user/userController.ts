@@ -7,92 +7,97 @@ import { config } from "../config/config";
 import { User } from "./userTypes";
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
-  const { name, email, password } = req.body;
+    const { name, email, password } = req.body;
 
-  // Validation
-  if (!name || !email || !password) {
-    const error = createHttpError(400, "All fields are required");
-    return next(error);
-  }
-
-  // Database call.
-  try {
-    const user = await userModel.findOne({ email });
-    if (user) {
-      const error = createHttpError(
-        400,
-        "User already exists with this email."
-      );
-      return next(error);
+    // Validation
+    if (!name || !email || !password) {
+        const error = createHttpError(400, "All fields are required");
+        return next(error);
     }
-  } catch (err) {
-    return next(createHttpError(500, "Error while getting user"));
-  }
 
-  /// password -> hash
+    // Database call.
+    try {
+        const user = await userModel.findOne({ email });
+        if (user) {
+            const error = createHttpError(
+                400,
+                "User already exists with this email."
+            );
+            return next(error);
+        }
+    } catch (err) {
+        return next(createHttpError(500, "Error while getting user"));
+    }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+    /// password -> hash
 
-  let newUser: User;
-  try {
-    newUser = await userModel.create({
-      name,
-      email,
-      password: hashedPassword,
-    });
-  } catch (err) {
-    return next(createHttpError(500, "Error while creating user."));
-  }
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  try {
-    // Token generation JWT
-    const token = sign({ sub: newUser._id }, config.jwtSecret as string, {
-      expiresIn: "7d",
-      algorithm: "HS256",
-    });
-    // Response
-    res.status(201).json({ accessToken: token });
-  } catch (err) {
-    return next(createHttpError(500, "Error while signing the jwt token"));
-  }
+    let newUser: User;
+    try {
+        newUser = await userModel.create({
+            name,
+            email,
+            password: hashedPassword,
+        });
+    } catch (err) {
+        return next(createHttpError(500, "Error while creating user."));
+    }
+
+    try {
+        // Token generation JWT
+        const token = sign({ sub: newUser._id }, config.jwtSecret as string, {
+            expiresIn: "7d",
+            algorithm: "HS256",
+        });
+        // Response
+        res.status(201).json({ accessToken: token });
+    } catch (err) {
+        return next(createHttpError(500, "Error while signing the jwt token"));
+    }
 };
 
 const loginUser = async (req: Request, res: Response, next: NextFunction) => {
-  const { email, password } = req.body;
+    const { email, password } = req.body;
 
-  if (!email || !password) {
-    return next(createHttpError(400, "All fields are required"));
-  }
-
-  // todo: wrap in try catch.
-  const user = await userModel.findOne({ email });
-  try{
-    if (!user) {
-      return next(createHttpError(404, "User not found."));
+    if (!email || !password) {
+        return next(createHttpError(400, "All fields are required"));
     }
-  }
-  catch(err){
-    return next(createHttpError(500, "Error while getting user."));
 
-  }
-  const isMatch = await bcrypt.compare(password, user.password);
+    let user = null;
 
-  if (!isMatch) {
-    return next(createHttpError(400, "Username or password incorrect!"));
-  }
+    try {
+        user = await userModel.findOne({ email });
+        if (!user) {
+            return next(createHttpError(404, "User not found."));
+        }
+    } catch (err) {
+        return next(createHttpError(500, "Error while getting user."));
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
 
-  // todo: handle errors
-  // Create accesstoken
-  try{
-    const token = sign({ sub: user._id }, config.jwtSecret as string, {
-    expiresIn: "7d",
-    algorithm: "HS256",
-  });
-  res.json({ accessToken: token });
-}
-  catch(err){
-    return next(createHttpError(500, "Error while signing the jwt token"));
-  }
+    if (!isMatch) {
+        return next(createHttpError(400, "Username or password incorrect!"));
+    }
+
+    // todo: handle errors
+    // Create accesstoken
+    try {
+        const token = sign(
+            {
+                sub: user._id,
+                // role: user.role
+            },
+            config.jwtSecret as string,
+            {
+                expiresIn: "7d",
+                algorithm: "HS256",
+            }
+        );
+        res.json({ accessToken: token });
+    } catch (err) {
+        return next(createHttpError(500, "Error while signing the jwt token"));
+    }
 };
 
 export { createUser, loginUser };
