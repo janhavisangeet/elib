@@ -86,7 +86,7 @@ const loginUser = async (req: Request, res: Response, next: NextFunction) => {
         const token = sign(
             {
                 sub: user._id,
-                // role: user.role
+                role: user.role,
             },
             config.jwtSecret as string,
             {
