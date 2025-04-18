@@ -5,11 +5,11 @@ import cloudinary from "../config/cloudinary";
 import createHttpError from "http-errors";
 import pdfModel from "./pdfModel";
 import { AuthRequest } from "../middlewares/authenticate";
-import { startOfDay, endOfDay } from 'date-fns';
+import { startOfDay, endOfDay } from "date-fns";
 
 const createPdf = async (req: Request, res: Response, next: NextFunction) => {
     // const { title, genre, description } = req.body;
-    const { month, year } = req.body;
+    const { createdAt } = req.body;
 
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
     // 'application/pdf'
@@ -51,8 +51,7 @@ const createPdf = async (req: Request, res: Response, next: NextFunction) => {
             // description,
             // genre,
             // coverImage: uploadResult.secure_url,
-            month,
-            year,
+            createdAt: createdAt,
             user: _req.userId,
             file: pdfFileUploadResult.secure_url,
         });
@@ -64,8 +63,10 @@ const createPdf = async (req: Request, res: Response, next: NextFunction) => {
 
         res.status(201).json({ id: newPdf._id });
     } catch (err) {
-        console.log(err);
-        return next(createHttpError(500, "Error while uploading the files."));
+        console.error("Error uploading PDF:", err);
+        return next(
+            createHttpError(500, (err as Error).message || "Upload failed")
+        );
     }
 };
 
@@ -87,7 +88,6 @@ const updatePdf = async (req: Request, res: Response, next: NextFunction) => {
     // check if image field is exists.
 
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-
 
     // let completeCoverImage = "";
     // if (files.coverImage) {
@@ -200,7 +200,7 @@ const updatePdf = async (req: Request, res: Response, next: NextFunction) => {
 //     }
 // };
 
-// Provides pdfs of all users 
+// Provides pdfs of all users
 // const listAllPdfs = async (req: Request, res: Response, next: NextFunction) => {
 //     try {
 //         // Extract query parameters
@@ -244,8 +244,6 @@ const updatePdf = async (req: Request, res: Response, next: NextFunction) => {
 //     }
 // };
 
-
-
 // Provides PDFs for a particular user
 const listPdfs = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -273,7 +271,7 @@ const listPdfs = async (req: Request, res: Response, next: NextFunction) => {
 
         const pdfs = await pdfModel
             .find(filters)
-            .populate('user', 'name')
+            .populate("user", "name")
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
@@ -289,7 +287,7 @@ const listPdfs = async (req: Request, res: Response, next: NextFunction) => {
         });
     } catch (err) {
         console.error(err);
-        return next(createHttpError(500, 'Error while getting PDFs'));
+        return next(createHttpError(500, "Error while getting PDFs"));
     }
 };
 
@@ -314,7 +312,7 @@ const listAllPdfs = async (req: Request, res: Response, next: NextFunction) => {
 
         const pdfs = await pdfModel
             .find(filters)
-            .populate('user', 'name')
+            .populate("user", "name")
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
@@ -330,7 +328,7 @@ const listAllPdfs = async (req: Request, res: Response, next: NextFunction) => {
         });
     } catch (err) {
         console.error(err);
-        return next(createHttpError(500, 'Error while getting PDFs'));
+        return next(createHttpError(500, "Error while getting PDFs"));
     }
 };
 
@@ -357,47 +355,37 @@ const getSinglePdf = async (
 };
 
 const deletePdf = async (req: Request, res: Response, next: NextFunction) => {
-    try{
+    try {
         const pdfId = req.params.pdfId;
 
         const pdf = await pdfModel.findOne({ _id: pdfId });
         if (!pdf) {
             return next(createHttpError(404, "Pdf not found"));
         }
-    
+
         // Check Access
         const _req = req as AuthRequest;
         if (pdf.user.toString() !== _req.userId) {
             return next(createHttpError(403, "You can not update others pdf."));
         }
-        // pdf-covers/dkzujeho0txi0yrfqjsm
-        // https://res.cloudinary.com/degzfrkse/image/upload/v1712590372/pdf-covers/u4bt9x7sv0r0cg5cuynm.png
-    
-        // const coverFileSplits = pdf.coverImage.split("/");
-        // const coverImagePublicId =
-        //     coverFileSplits.at(-2) +
-        //     "/" +
-        //     coverFileSplits.at(-1)?.split(".").at(-2);
-    
+
         const pdfFileSplits = pdf.file.split("/");
         const pdfFilePublicId =
             pdfFileSplits.at(-2) + "/" + pdfFileSplits.at(-1);
         console.log("pdfFilePublicId", pdfFilePublicId);
-        // todo: add try error block
-        // await cloudinary.uploader.destroy(coverImagePublicId);
         await cloudinary.uploader.destroy(pdfFilePublicId, {
             resource_type: "raw",
         });
-    
+
         await pdfModel.deleteOne({ _id: pdfId });
-    
+
         return res.sendStatus(204);
-    }
-    catch(err){
+    } catch (err) {
         console.error("Error deleting PDF:", err);
-        next(createHttpError(500, "Something went wrong while deleting the PDF."));
+        next(
+            createHttpError(500, "Something went wrong while deleting the PDF.")
+        );
     }
-    
 };
 
-export { createPdf, updatePdf, listPdfs, listAllPdfs,getSinglePdf, deletePdf };
+export { createPdf, updatePdf, listPdfs, listAllPdfs, getSinglePdf, deletePdf };
