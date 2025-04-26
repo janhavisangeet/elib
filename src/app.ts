@@ -4,6 +4,8 @@ import globalErrorHandler from "./middlewares/globalErrorHandler";
 import userRouter from "./user/userRouter";
 import pdfRouter from "./pdf/pdfRouter";
 import { config } from "./config/config";
+//import { request } from "http";
+import requestRouter from "./request/requestRouter";
 
 const app = express();
 
@@ -13,7 +15,7 @@ app.use(
     })
 );
 
-app.use(express.json()); 
+app.use(express.json());
 
 // Routes
 // Http methods: GET, POST, PUT, PATCH, DELETE
@@ -23,6 +25,7 @@ app.get("/", (req, res, next) => {
 
 app.use("/api/users", userRouter);
 app.use("/api/pdfs", pdfRouter);
+app.use("/api/requests", requestRouter);
 
 // Global error handler
 app.use(globalErrorHandler);

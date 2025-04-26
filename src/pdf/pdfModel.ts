@@ -12,12 +12,16 @@ const pdfSchema = new mongoose.Schema<Pdf>(
             type: String,
             required: true,
         },
-        createdAt: {
-            type: Date,
-            required: true,
+        // createdAt: {
+        //     type: Date,
+        //     required: true,
+        // },
+        valid: {
+            type: Boolean,
+            default: true,
         },
-    }
-    //{ timestamps: true }
+    },
+    { timestamps: true }
 );
 
 export default mongoose.model<Pdf>("Pdf", pdfSchema);

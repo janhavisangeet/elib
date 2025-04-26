@@ -8,26 +8,11 @@ import { AuthRequest } from "../middlewares/authenticate";
 import { startOfDay, endOfDay } from "date-fns";
 
 const createPdf = async (req: Request, res: Response, next: NextFunction) => {
-    // const { title, genre, description } = req.body;
     const { createdAt } = req.body;
 
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-    // 'application/pdf'
-    // const coverImageMimeType = files.coverImage[0].mimetype.split("/").at(-1);
-    // const fileName = files.coverImage[0].filename;
-    // const filePath = path.resolve(
-    //     __dirname,
-    //     "../../public/data/uploads",
-    //     fileName
-    // );
 
     try {
-        // const uploadResult = await cloudinary.uploader.upload(filePath, {
-        //     filename_override: fileName,
-        //     folder: "pdf-covers",
-        //     format: coverImageMimeType,
-        // });
-
         const pdfFileName = files.file[0].filename;
         const pdfFilePath = path.resolve(
             __dirname,
@@ -47,10 +32,6 @@ const createPdf = async (req: Request, res: Response, next: NextFunction) => {
         const _req = req as AuthRequest;
 
         const newPdf = await pdfModel.create({
-            // title,
-            // description,
-            // genre,
-            // coverImage: uploadResult.secure_url,
             createdAt: createdAt,
             user: _req.userId,
             file: pdfFileUploadResult.secure_url,
@@ -58,7 +39,6 @@ const createPdf = async (req: Request, res: Response, next: NextFunction) => {
 
         // Delete temp.files
         // todo: wrap in try catch...
-        // await fs.promises.unlink(filePath);
         await fs.promises.unlink(pdfFilePath);
 
         res.status(201).json({ id: newPdf._id });
@@ -353,39 +333,39 @@ const getSinglePdf = async (
         return next(createHttpError(500, "Error while getting a pdf"));
     }
 };
+//only for knowlegde purpose
+// const deletePdf = async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const pdfId = req.params.pdfId;
 
-const deletePdf = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const pdfId = req.params.pdfId;
+//         const pdf = await pdfModel.findOne({ _id: pdfId });
+//         if (!pdf) {
+//             return next(createHttpError(404, "Pdf not found"));
+//         }
 
-        const pdf = await pdfModel.findOne({ _id: pdfId });
-        if (!pdf) {
-            return next(createHttpError(404, "Pdf not found"));
-        }
+//         // Check Access
+//         const _req = req as AuthRequest;
+//         if (pdf.user.toString() !== _req.userId) {
+//             return next(createHttpError(403, "You can not update others pdf."));
+//         }
 
-        // Check Access
-        const _req = req as AuthRequest;
-        if (pdf.user.toString() !== _req.userId) {
-            return next(createHttpError(403, "You can not update others pdf."));
-        }
+//         const pdfFileSplits = pdf.file.split("/");
+//         const pdfFilePublicId =
+//             pdfFileSplits.at(-2) + "/" + pdfFileSplits.at(-1);
+//         console.log("pdfFilePublicId", pdfFilePublicId);
+//         await cloudinary.uploader.destroy(pdfFilePublicId, {
+//             resource_type: "raw",
+//         });
 
-        const pdfFileSplits = pdf.file.split("/");
-        const pdfFilePublicId =
-            pdfFileSplits.at(-2) + "/" + pdfFileSplits.at(-1);
-        console.log("pdfFilePublicId", pdfFilePublicId);
-        await cloudinary.uploader.destroy(pdfFilePublicId, {
-            resource_type: "raw",
-        });
+//         await pdfModel.deleteOne({ _id: pdfId });
 
-        await pdfModel.deleteOne({ _id: pdfId });
+//         return res.sendStatus(204);
+//     } catch (err) {
+//         console.error("Error deleting PDF:", err);
+//         next(
+//             createHttpError(500, "Something went wrong while deleting the PDF.")
+//         );
+//     }
+// };
 
-        return res.sendStatus(204);
-    } catch (err) {
-        console.error("Error deleting PDF:", err);
-        next(
-            createHttpError(500, "Something went wrong while deleting the PDF.")
-        );
-    }
-};
-
-export { createPdf, updatePdf, listPdfs, listAllPdfs, getSinglePdf, deletePdf };
+export { createPdf, updatePdf, listPdfs, listAllPdfs, getSinglePdf };

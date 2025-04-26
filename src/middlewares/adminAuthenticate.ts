@@ -7,6 +7,7 @@ export interface AuthRequest extends Request {
     userId: string;
     role: string;
 }
+
 const authenticate = (req: Request, res: Response, next: NextFunction) => {
     const token = req.header("Authorization");
     if (!token) {
@@ -24,9 +25,14 @@ const authenticate = (req: Request, res: Response, next: NextFunction) => {
         _req.userId = decoded.sub as string;
         _req.role = decoded.role as string;
 
+        // Check if user is ADMIN
+        if (_req.role !== "ADMIN") {
+            return next(createHttpError(403, "Access forbidden: Admins only."));
+        }
+
         next();
     } catch (err) {
-        return next(createHttpError(401, "Token expired."));
+        return next(createHttpError(401, "Invalid or expired token."));
     }
 };
 
