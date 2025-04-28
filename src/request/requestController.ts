@@ -121,3 +121,37 @@ export const deleteRequestStatus = async (
         );
     }
 };
+//get all user requests api
+
+export const listAllRequests = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+
+        const totalRequests = await RequestModel.countDocuments();
+
+        const requests = await RequestModel.find()
+            .populate("userId", "name") // Populate user name
+            .populate("pdfId", "title") // Populate pdf title (assuming your Pdf model has a 'title' field)
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        res.json({
+            data: requests,
+            pagination: {
+                total: totalRequests,
+                page,
+                limit,
+                totalPages: Math.ceil(totalRequests / limit),
+            },
+        });
+    } catch (err) {
+        console.error(err);
+        return next(createHttpError(500, "Error while getting requests"));
+    }
+};
