@@ -68,8 +68,8 @@ export const deleteRequestStatus = async (
     next: NextFunction
 ) => {
     try {
-        const { status, requestId } = req.body;
-
+        const { status } = req.body; // Expect status to bpassed in the body
+        const { requestId } = req.params; // Get requestId from the URL parameter
         if (!requestId || !mongoose.Types.ObjectId.isValid(requestId)) {
             return next(
                 createHttpError(400, "Invalid or missing 'requestId'.")

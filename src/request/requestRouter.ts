@@ -14,6 +14,6 @@ const router = express.Router();
 // POST /api/requests
 // Authenticated users can submit a request linked to a PDF
 router.post("/", authenticate, createRequest);
-router.delete("/", adminAuthenticate, deleteRequestStatus);
+router.delete("/:requestId", adminAuthenticate, deleteRequestStatus);
 router.get("/", adminAuthenticate, listAllRequests);
 export default router;
