@@ -245,6 +245,7 @@ const listPdfs = async (req: Request, res: Response, next: NextFunction) => {
         const _req = req as AuthRequest;
         if (_req.userId) {
             filters.user = _req.userId;
+            filters.valid = true;
         }
 
         const totalPdfs = await pdfModel.countDocuments(filters);
