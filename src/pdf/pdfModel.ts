@@ -16,6 +16,10 @@ const pdfSchema = new mongoose.Schema<Pdf>(
         //     type: Date,
         //     required: true,
         // },
+        date: {
+            type: Date,
+            required: true,
+        },
         valid: {
             type: Boolean,
             default: true,

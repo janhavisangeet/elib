@@ -8,7 +8,7 @@ import { AuthRequest } from "../middlewares/authenticate";
 import { startOfDay, endOfDay } from "date-fns";
 
 const createPdf = async (req: Request, res: Response, next: NextFunction) => {
-    const { createdAt } = req.body;
+    const { date } = req.body;
 
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
@@ -32,7 +32,7 @@ const createPdf = async (req: Request, res: Response, next: NextFunction) => {
         const _req = req as AuthRequest;
 
         const newPdf = await pdfModel.create({
-            createdAt: createdAt,
+            date: new Date(date),
             user: _req.userId,
             file: pdfFileUploadResult.secure_url,
         });
@@ -236,7 +236,7 @@ const listPdfs = async (req: Request, res: Response, next: NextFunction) => {
         // Filter by specific date (full day range)
         if (dateString) {
             const date = new Date(dateString);
-            filters.createdAt = {
+            filters.date = {
                 $gte: startOfDay(date),
                 $lte: endOfDay(date),
             };
@@ -283,7 +283,7 @@ const listAllPdfs = async (req: Request, res: Response, next: NextFunction) => {
 
         if (dateString) {
             const date = new Date(dateString);
-            filters.createdAt = {
+            filters.date = {
                 $gte: startOfDay(date),
                 $lte: endOfDay(date),
             };

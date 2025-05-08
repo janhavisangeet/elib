@@ -6,4 +6,5 @@ export interface RequestType {
     newFile: string | null;
     userId: mongoose.Types.ObjectId;
     pdfId: mongoose.Types.ObjectId;
+    type: "EDIT" | "DELETE";
 }

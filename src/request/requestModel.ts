@@ -11,6 +11,12 @@ const requestSchema = new Schema<Request>(
             default: "PENDING",
             required: true,
         },
+        type: {
+            type: String,
+            enum: ["EDIT", "DELETE"],
+            default: "EDIT",
+            required: true,
+        },
         newDate: {
             type: Date,
             default: null,
